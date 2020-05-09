@@ -2,9 +2,12 @@ package utils
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/asaskevich/govalidator"
 	"github.com/sirupsen/logrus"
 	"net"
 	"os"
@@ -98,4 +101,20 @@ func GetKeys(m map[int]int) []int {
 		i++
 	}
 	return keys
+}
+
+/**
+ * md5生成
+ */
+func CreateMD5(str string) string {
+	h := md5.New()
+	h.Write([]byte(str))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+/**
+ * json验证器初始化
+ */
+func InitValidator() {
+	govalidator.SetFieldsRequiredByDefault(true)
 }
