@@ -1,0 +1,9 @@
+{
+  "name": "sina",
+  "log_level": "debug",
+  "jwt_secret": "15598870762",
+  "database_host": "192.168.5.55:3306",
+  "database_username": "root",
+  "database_password": "15946395951",
+  "database_table": "meeting"
+}
