@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"github.com/asaskevich/govalidator"
 	"github.com/sirupsen/logrus"
+	"io"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
@@ -117,4 +119,31 @@ func CreateMD5(str string) string {
  */
 func InitValidator() {
 	govalidator.SetFieldsRequiredByDefault(true)
+}
+
+/**
+ * 序列化json
+ */
+func JsonBind(ptr interface{}, rq *http.Request) error {
+	if rq.Body != nil {
+		defer rq.Body.Close()
+		err := json.NewDecoder(rq.Body).Decode(ptr)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		return nil
+	} else {
+		return errors.New("empty request body")
+	}
+}
+
+/**
+ * auto split
+ */
+func GetAuthToken(r *http.Request) (string, error) {
+	ss := strings.Split(r.Header.Get("Authorization"), " ")
+	if len(ss) == 2 {
+		return ss[1], nil
+	}
+	return "", errors.New("unauthorized")
 }

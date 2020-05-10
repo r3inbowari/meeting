@@ -1,12 +1,22 @@
 package test
 
 import (
-	"meeting"
+	"encoding/json"
 	"meeting/da"
+	"meeting/utils"
 	"meeting/web"
 	"testing"
 	"time"
 )
+
+func TestJWT(t *testing.T) {
+	a := web.CreateToken("restore")
+	println(a)
+	println(web.CheckToken(a))
+
+	time.Sleep(time.Second * 6)
+	println(web.CheckToken(a))
+}
 
 func TestAddUser(t *testing.T) {
 	// create
@@ -15,10 +25,11 @@ func TestAddUser(t *testing.T) {
 	data := web.User{
 		Uid:      "admin",
 		Username: "admin",
-		Password: "admin",
-		Sex:      meeting.Famale,
-		GroupID:  "ab1",
+		Password: utils.CreateMD5("admin"),
+		Sex:      utils.Famale,
+		Role:     "manager",
 		Avatar:   "http://icon.qq.com",
+		Status:   utils.StatusNormal,
 	}
 
 	// insert
@@ -34,8 +45,8 @@ func TestOperationUser(t *testing.T) {
 		Uid:      "admin",
 		Username: "admin",
 		Password: "admin",
-		Sex:      meeting.Famale,
-		GroupID:  "ab1",
+		Sex:      utils.Famale,
+		Role:     "ab1",
 		Avatar:   "http://icon.qq.com",
 	}
 
@@ -63,7 +74,10 @@ func TestUserExist(t *testing.T) {
 func TestLogonAndLogin(t *testing.T) {
 	_ = web.LogonUser(web.User{Uid: "r3inb", Password: "15598870762", Username: "chen"})
 
+	// 模拟审核过程
+	web.LogonConfirm("r3inb", "manager")
 	time.Sleep(time.Second * 2)
+
 	ui := web.UserInfo{
 		Uid:      "r3inb",
 		Password: "15598870762",
@@ -73,8 +87,15 @@ func TestLogonAndLogin(t *testing.T) {
 		println(err.Error())
 	} else {
 		println(token)
+		a := web.GetRoleByToken(token)
+		println(a)
 	}
-
 	time.Sleep(time.Second * 4)
+}
 
+func TestGetLockUserSet(t *testing.T) {
+	a := web.GetAuditUserSet()
+	println(len(a))
+	b, _ := json.Marshal(a)
+	println(string(b))
 }

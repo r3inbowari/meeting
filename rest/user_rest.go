@@ -1,13 +1,13 @@
 package rest
 
 import (
+	"github.com/gorilla/mux"
 	"meeting/web"
-	"net/http"
 )
 
-func LoginRest() {
-	http.HandleFunc("/login", web.Login)
-
+func LoginRest(r *mux.Router) {
+	r.HandleFunc("/login", web.Login).Methods("Post")
+	r.HandleFunc("/reg", web.Reg).Methods("Post")
+	r.HandleFunc("/reg", web.RegGet).Methods("Get")
+	r.HandleFunc("/reg", web.RegPut).Methods("Put")
 }
-
-
