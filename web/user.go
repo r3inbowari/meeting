@@ -4,10 +4,12 @@ import (
 	"errors"
 	"github.com/asaskevich/govalidator"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"meeting/da"
 	"meeting/utils"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -87,12 +89,81 @@ func RegGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	us := GetAuditUserSet()
-	utils.FailedResult(w, us, len(us), http.StatusOK, utils.OpSucceed)
+	utils.SucceedResult(w, us, len(us), http.StatusOK, utils.OpSucceed)
 
 }
 
 func RegPut(w http.ResponseWriter, r *http.Request) {
+	token, err := utils.GetAuthToken(r)
+	if err != nil {
+		utils.FailedResult(w, err.Error(), 1, http.StatusUnauthorized, utils.OpAuthError)
+		return
+	}
 
+	if !CheckToken(token) {
+		utils.FailedResult(w, "login error", 1, http.StatusUnauthorized, utils.OpLoginError)
+		return
+	}
+
+	if GetRoleByToken(token) != utils.RoleManager {
+		utils.FailedResult(w, "access denied resources", 1, http.StatusForbidden, utils.OpResourcesDenied)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		utils.FailedResult(w, "wrong operation", 1, http.StatusInternalServerError, utils.OpFailed)
+		return
+	}
+
+	var role string
+	var status int
+	if r.FormValue("role") == "" {
+		role = utils.RoleUser
+	} else {
+		role = r.FormValue("role")
+	}
+	if r.FormValue("status") == "" {
+		status = utils.StatusNormal
+	} else {
+		b, err := strconv.Atoi(r.FormValue("status"))
+		if err != nil {
+			utils.FailedResult(w, "wrong operation", 1, http.StatusInternalServerError, utils.OpFailed)
+		}
+		status = b
+	}
+
+	vars := mux.Vars(r)
+	da.DBC().Model(&User{}).Where("uid = ?", vars["uid"]).Updates(map[string]interface{}{"role": role, "status": status})
+
+	utils.SucceedResult(w, "account audit succeed", 1, http.StatusOK, utils.OpSucceed)
+}
+
+/**
+ * 设置头像
+ */
+func Avatar(w http.ResponseWriter, r *http.Request) {
+	token, err := utils.GetAuthToken(r)
+	if err != nil {
+		utils.FailedResult(w, err.Error(), 1, http.StatusUnauthorized, utils.OpAuthError)
+		return
+	}
+
+	if !CheckToken(token) {
+		utils.FailedResult(w, "login error", 1, http.StatusUnauthorized, utils.OpLoginError)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		utils.FailedResult(w, "wrong operation", 1, http.StatusInternalServerError, utils.OpFailed)
+		return
+	}
+
+	url := r.FormValue("url")
+	da.DBC().Model(&User{}).Where("uid = ?", GetIdTokenByToken(token)).Updates(map[string]interface{}{"avatar": url})
+
+	utils.SucceedResult(w, "account avatar change succeed", 1, http.StatusOK, utils.OpSucceed)
 }
 
 func (u *User) GetUsername() string {
@@ -265,6 +336,32 @@ func GetRoleByToken(token string) string {
 	} else {
 		return utils.RoleDrift
 	}
+}
+
+/**
+ * 获取用户id
+ */
+func GetIdTokenByToken(token string) string {
+	result, err := jwt.Parse(token, func(*jwt.Token) (interface{}, error) {
+		return utils.GetConfig().GetJwtSecret(), nil
+	})
+	if err != nil {
+		if err.Error() == "Token is expired" && result != nil {
+			utils.Info("token is expired", logrus.Fields{"uid": result.Claims.(jwt.MapClaims)["jti"]})
+		} else {
+			utils.Warn("parse with claims failed")
+		}
+		return ""
+	}
+
+	var data User
+	if !da.DBC().Where("uid = ?", result.Claims.(jwt.MapClaims)["jti"]).First(&data).RecordNotFound() {
+		// 此处role是必要的
+		return data.Uid
+	} else {
+		return ""
+	}
+
 }
 
 /**

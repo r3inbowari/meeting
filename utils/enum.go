@@ -16,10 +16,12 @@ const (
 	StatusAudit
 	StatusNormal
 	StatusLock
+	StatusDenied
 )
 
 const (
 	OpSucceed = iota
+	OpFailed
 	OpPasswordError
 	OpLoginError
 	OpLogonError
