@@ -1,5 +1,7 @@
 {
   "name": "sina",
+  "version": "v1.0.2 2020.05.10",
+  "versionTag": "beta2",
   "log_level": "debug",
   "jwt_secret": "15598870762",
   "database_host": "192.168.5.55:3306",

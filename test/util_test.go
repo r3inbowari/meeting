@@ -34,3 +34,7 @@ func TestJsonValid(t *testing.T) {
 	}
 	fmt.Println(result)
 }
+
+func TestCreateUUID(t *testing.T) {
+	println(utils.CreateUUID())
+}

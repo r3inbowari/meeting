@@ -15,6 +15,8 @@ type LocalConfig struct {
 	DatabasePassword *string   `json:"database_password"`
 	JwtSecret        *string   `json:"jwt_secret"`
 	CacheDeadline    time.Time `json:"-"`
+	Version          *string   `json:"version"`
+	VersionTag       *string   `json:"versionTag"`
 }
 
 var config = new(LocalConfig)

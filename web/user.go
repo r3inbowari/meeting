@@ -1,15 +1,20 @@
 package web
 
 import (
+	"encoding/base64"
 	"errors"
 	"github.com/asaskevich/govalidator"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"io"
 	"meeting/da"
 	"meeting/utils"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -28,6 +33,9 @@ type UserInfo struct {
 	Password string `json:"password" valid:"ascii,length(3|16)"`
 }
 
+/**
+ * login
+ */
 func Login(w http.ResponseWriter, r *http.Request) {
 	var ui UserInfo
 	if err := utils.JsonBind(&ui, r); err != nil {
@@ -139,6 +147,81 @@ func RegPut(w http.ResponseWriter, r *http.Request) {
 	utils.SucceedResult(w, "account audit succeed", 1, http.StatusOK, utils.OpSucceed)
 }
 
+type VersionInfo struct {
+	Version string `json:"version"`
+	Tag     string `json:"tag"`
+}
+
+func ServiceVersion(w http.ResponseWriter, r *http.Request) {
+	vi := VersionInfo{
+		Version: *utils.GetConfig().Version,
+		Tag:     *utils.GetConfig().VersionTag,
+	}
+	utils.SucceedResult(w, vi, 1, http.StatusOK, utils.OpSucceed)
+}
+
+/**
+ * get login info
+ */
+func Info(w http.ResponseWriter, r *http.Request) {
+	token, err := utils.GetAuthToken(r)
+	if err != nil {
+		utils.FailedResult(w, err.Error(), 1, http.StatusUnauthorized, utils.OpAuthError)
+		return
+	}
+
+	if !CheckToken(token) {
+		utils.FailedResult(w, "login error", 1, http.StatusUnauthorized, utils.OpLoginError)
+		return
+	}
+
+	var dat User
+	da.DBC().Where("uid = ?", GetIdTokenByToken(token)).First(&dat)
+
+	dat.Password = ""
+	utils.SucceedResult(w, dat, 1, http.StatusOK, utils.OpSucceed)
+}
+
+/**
+ * 获取头像
+ */
+func GetAvatar(w http.ResponseWriter, r *http.Request) {
+	token, err := utils.GetAuthToken(r)
+	if err != nil {
+		utils.FailedResult(w, err.Error(), 1, http.StatusUnauthorized, utils.OpAuthError)
+		return
+	}
+
+	if !CheckToken(token) {
+		utils.FailedResult(w, "login error", 1, http.StatusUnauthorized, utils.OpLoginError)
+		return
+	}
+	var avatarSrc string
+	var dat User
+
+	da.DBC().Where("uid = ?", GetIdTokenByToken(token)).First(&dat)
+	if dat.Avatar == "" {
+		avatarSrc = "./assets/default-avatar.png"
+	} else {
+		avatarSrc = "./avatar/" + dat.Avatar
+	}
+	ff, err := os.Open(avatarSrc)
+	if err != nil {
+		utils.FailedResult(w, "file operation failed", 1, http.StatusInternalServerError, utils.OpFailed)
+		return
+	}
+	defer ff.Close()
+	buffer := make([]byte, 500000)
+	n, err := ff.Read(buffer)
+	if err != nil {
+		utils.FailedResult(w, "file operation failed buffer", 1, http.StatusInternalServerError, utils.OpFailed)
+		return
+	}
+	base := base64.StdEncoding.EncodeToString(buffer[:n])
+
+	utils.SucceedResult(w, base, 1, http.StatusOK, utils.OpSucceed)
+}
+
 /**
  * 设置头像
  */
@@ -154,14 +237,30 @@ func Avatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = r.ParseForm()
-	if err != nil {
-		utils.FailedResult(w, "wrong operation", 1, http.StatusInternalServerError, utils.OpFailed)
+	uploadFile, handle, err := r.FormFile("img")
+	if handle == nil {
+		utils.FailedResult(w, "error handle", 1, http.StatusBadRequest, utils.OpFailed)
+		return
+	}
+	ext := strings.ToLower(path.Ext(handle.Filename))
+	if ext != ".jpg" && ext != ".png" {
+		utils.FailedResult(w, "only jpg or png image", 1, http.StatusBadRequest, utils.OpFailed)
 		return
 	}
 
-	url := r.FormValue("url")
-	da.DBC().Model(&User{}).Where("uid = ?", GetIdTokenByToken(token)).Updates(map[string]interface{}{"avatar": url})
+	uuid := utils.CreateUUID()
+	err = os.Mkdir("./avatar/", 0777)
+	saveFile, err := os.OpenFile("./avatar/"+uuid, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		utils.FailedResult(w, "file operation failed", 1, http.StatusInternalServerError, utils.OpFailed)
+		return
+	}
+	_, _ = io.Copy(saveFile, uploadFile)
+
+	defer uploadFile.Close()
+	defer saveFile.Close()
+
+	da.DBC().Model(&User{}).Where("uid = ?", GetIdTokenByToken(token)).Updates(map[string]interface{}{"avatar": uuid})
 
 	utils.SucceedResult(w, "account avatar change succeed", 1, http.StatusOK, utils.OpSucceed)
 }
@@ -371,7 +470,7 @@ func GetIdTokenByToken(token string) string {
 func CreateToken(uid string) string {
 	claims := &jwt.StandardClaims{
 		NotBefore: time.Now().Unix(),
-		ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
+		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 		Issuer:    "r3inb",
 		Id:        uid,
 	}

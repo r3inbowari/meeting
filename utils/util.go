@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/asaskevich/govalidator"
+	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net"
@@ -146,4 +147,12 @@ func GetAuthToken(r *http.Request) (string, error) {
 		return ss[1], nil
 	}
 	return "", errors.New("unauthorized")
+}
+
+/**
+ * uuid create
+ */
+func CreateUUID() string {
+	u1 := uuid.NewV4()
+	return u1.String()
 }
