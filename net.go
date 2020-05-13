@@ -11,6 +11,7 @@ import (
 func Start()  {
 	r := mux.NewRouter()
 	rest.LoginRest(r)
+	rest.FeedbackRest(r)
 	log.Println("[INFO] 解析服务启动: 9999")
 	err := http.ListenAndServe(":9999", r)
 	if err != nil {

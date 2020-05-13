@@ -30,3 +30,7 @@ const (
 	OpAuthError
 	OpResourcesDenied
 )
+
+const (
+	ContentFeedback = iota
+)
