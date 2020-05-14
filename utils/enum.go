@@ -34,3 +34,9 @@ const (
 const (
 	ContentFeedback = iota
 )
+
+const (
+	RoomApplyWait = iota
+	RoomApplySucceed
+	RoomApplyDenied
+)

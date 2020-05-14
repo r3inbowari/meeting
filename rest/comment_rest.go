@@ -5,6 +5,6 @@ import (
 	"meeting/web"
 )
 
-func FeedbackRest(r *mux.Router) {
+func CommentRest(r *mux.Router) {
 	r.HandleFunc("/feedback", web.Feedback).Methods("Post")
 }

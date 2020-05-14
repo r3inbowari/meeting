@@ -34,7 +34,7 @@ type UserInfo struct {
 }
 
 /**
- * login
+ * 登录
  */
 func Login(w http.ResponseWriter, r *http.Request) {
 	var ui UserInfo
@@ -57,6 +57,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	utils.SucceedResult(w, token, 1, http.StatusOK, utils.OpSucceed)
 }
 
+/*
+ * 注册
+ */
 func Reg(w http.ResponseWriter, r *http.Request) {
 	var u User
 	if err := utils.JsonBind(&u, r); err != nil {
@@ -79,6 +82,9 @@ func Reg(w http.ResponseWriter, r *http.Request) {
 	utils.SucceedResult(w, "wait for audit", 1, http.StatusOK, utils.OpSucceed)
 }
 
+/**
+ * 注册数据获取
+ */
 func RegGet(w http.ResponseWriter, r *http.Request) {
 	token, err := utils.GetAuthToken(r)
 	if err != nil {
@@ -101,6 +107,9 @@ func RegGet(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/**
+ * 注册数据修改
+ */
 func RegPut(w http.ResponseWriter, r *http.Request) {
 	token, err := utils.GetAuthToken(r)
 	if err != nil {
@@ -152,6 +161,9 @@ type VersionInfo struct {
 	Tag     string `json:"tag"`
 }
 
+/**
+ * 服务版本
+ */
 func ServiceVersion(w http.ResponseWriter, r *http.Request) {
 	vi := VersionInfo{
 		Version: *utils.GetConfig().Version,
@@ -161,7 +173,7 @@ func ServiceVersion(w http.ResponseWriter, r *http.Request) {
 }
 
 /**
- * get login info
+ * 登录信息获取
  */
 func Info(w http.ResponseWriter, r *http.Request) {
 	token, err := utils.GetAuthToken(r)
@@ -175,6 +187,7 @@ func Info(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 用户
 	var dat User
 	da.DBC().Where("uid = ?", GetIdTokenByToken(token)).First(&dat)
 
