@@ -14,11 +14,6 @@ type RequestResult struct {
 }
 
 func SucceedResult(w http.ResponseWriter, data interface{}, total int, tag int, code int) {
-	w.Header().Add("Access-Control-Allow-Origin", "*") //允许访问所有域
-	w.Header().Add("content-type", "application/json") //返回数据格式是json
-	w.Header().Add("Access-Control-Allow-Headers", "Authorization") //header的类型
-
-	w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 	var rq RequestResult
 	rq.Data = data
 	rq.Total = total
@@ -35,10 +30,6 @@ func SucceedResult(w http.ResponseWriter, data interface{}, total int, tag int, 
 }
 
 func FailedResult(w http.ResponseWriter, data interface{}, total int, tag int, code int) {
-	w.Header().Add("Access-Control-Allow-Origin", "*") //允许访问所有域
-	w.Header().Add("content-type", "application/json") //返回数据格式是json
-	w.Header().Add("Access-Control-Allow-Headers", "Authorization") //header的类型
-	w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 	var rq RequestResult
 	rq.Data = data
 	rq.Total = total

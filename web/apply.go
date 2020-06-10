@@ -170,16 +170,12 @@ func (apply *Apply) GetRoomData() []Apply {
  */
 func GetApply(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
-		w.Header().Add("Access-Control-Allow-Origin", "*") //允许访问所有域
-		w.Header().Add("content-type", "application/json") //返回数据格式是json
-		w.Header().Add("Access-Control-Allow-Headers", "Authorization") //header的类型
-
-		w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-
-		println("aaaaasdasd")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		w.Header().Add("content-type", "application/json")
+		w.Header().Add("Access-Control-Allow-Headers", "Authorization")
+		w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT")
 		return
 	}
-	println(r.Header.Get("Authorization"))
 	// 验证
 	token, err := utils.GetAuthToken(r)
 	if err != nil {

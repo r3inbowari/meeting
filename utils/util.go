@@ -22,6 +22,19 @@ import (
 const configFileSizeLimit = 10 << 20
 
 /**
+ * 跨域资源Options
+ */
+func OptionsRet(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		w.Header().Add("content-type", "application/json")
+		w.Header().Add("Access-Control-Allow-Headers", "Authorization")
+		w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT")
+		return
+	}
+}
+
+/**
  * Load File
  * @param path 文件路径
  * @param dist 存放目标
