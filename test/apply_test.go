@@ -23,19 +23,19 @@ func TestApply(t *testing.T) {
 		Start:   time.Now(),
 		End:     time.Now().Add(time.Hour),
 		Status:  0,
-		Content: "申请一下教室",
+		Content: "chenhaibin",
 		Created: time.Now(),
 		Files: []web.File{
 			{
 				Id:      utils.CreateUUID(),
 				ApplyID: aid,
-				Name:    "文件.doc",
+				Name:    "kuaikuai.doc",
 				Create:  time.Now(),
 			},
 			{
 				Id:      utils.CreateUUID(),
 				ApplyID: aid,
-				Name:    "图片.jpg",
+				Name:    "xiaobimssd.jpg",
 				Create:  time.Now(),
 			},
 		},

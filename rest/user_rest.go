@@ -3,11 +3,12 @@ package rest
 import (
 	"github.com/gorilla/mux"
 	"meeting/web"
+	"net/http"
 )
 
 // 就是个小作业, 就不搞什么验证中间件了
 func LoginRest(r *mux.Router) {
-	r.HandleFunc("/login", web.Login).Methods("Post") // 登录
+	r.HandleFunc("/login", web.Login).Methods(http.MethodPost) // 登录
 	r.HandleFunc("/login", web.Info).Methods("Get")   // 登录信息
 
 	r.HandleFunc("/reg", web.Reg).Methods("Post")         // 注册
