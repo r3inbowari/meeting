@@ -22,7 +22,13 @@ import (
 const configFileSizeLimit = 10 << 20
 
 /**
- * 跨域资源Options
+ * 工具方法
+ * @author r3inbowari
+ * @create 5/11/2020
+ */
+
+/**
+ * 跨域资源访问设置 OPTIONS
  */
 func OptionsRet(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
@@ -75,7 +81,9 @@ func LoadConfig(path string, dist interface{}) error {
 	return nil
 }
 
-// StripComments
+/**
+ * 注释清除
+ */
 func StripComments(data []byte) ([]byte, error) {
 	data = bytes.Replace(data, []byte("\r"), []byte(""), 0)
 	lines := bytes.Split(data, []byte("\n"))
@@ -93,10 +101,16 @@ func StripComments(data []byte) ([]byte, error) {
 	return bytes.Join(filtered, []byte("\n")), nil
 }
 
+/**
+ * conn的ip获取
+ */
 func GetIP(conn net.Conn) string {
 	return strings.Split(conn.RemoteAddr().String(), ":")[0]
 }
 
+/**
+ * linux下port占用情况获取
+ */
 func PortInUse(port int) bool {
 	checkStatement := fmt.Sprintf("lsof -i:%d ", port)
 	output, _ := exec.Command("sh", "-c", checkStatement).CombinedOutput()
@@ -152,7 +166,7 @@ func JsonBind(ptr interface{}, rq *http.Request) error {
 }
 
 /**
- * auto split
+ * 获取jwt-string
  */
 func GetAuthToken(r *http.Request) (string, error) {
 	ss := strings.Split(r.Header.Get("Authorization"), " ")

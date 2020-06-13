@@ -34,16 +34,17 @@ type File struct {
 }
 
 type Apply struct {
-	Id      string    `json:"id"`               // 申请实例id
-	Uid     string    `json:"uid"`              // 用户id
-	Rid     string    `json:"rid" valid:"uuid"` // 教室id
-	Start   time.Time `json:"start" `           // 开始时间
-	End     time.Time `json:"end"`              // 结束时间
-	Status  int       `json:"status"`           // 申请状态
-	View    string    `json:"view"`             // 申请意见
-	Content string    `json:"content"`          // 申请内容
-	Files   []File    `json:"files"`            // 文件连接
-	Created time.Time `json:"created"`          // 创建时间
+	Id       string    `json:"id"`               // 申请实例id
+	Uid      string    `json:"uid"`              // 用户id
+	Rid      string    `json:"rid" valid:"uuid"` // 教室id
+	Username string    `json:"username"`         // 申请人
+	Start    time.Time `json:"start" `           // 开始时间
+	End      time.Time `json:"end"`              // 结束时间
+	Status   int       `json:"status"`           // 申请状态
+	View     string    `json:"view"`             // 申请意见
+	Content  string    `json:"content"`          // 申请内容
+	Files    []File    `json:"files"`            // 文件连接
+	Created  time.Time `json:"created"`          // 创建时间
 
 }
 
@@ -85,7 +86,7 @@ func PostApply(w http.ResponseWriter, r *http.Request) {
 
 	// 验证时间
 	if err := apply.ValidTimeCheck(); err != nil {
-		utils.FailedResult(w, err.Error(), 1, http.StatusInternalServerError, utils.OpValidateError)
+		utils.FailedResult(w, err.Error(), 1, http.StatusOK, utils.OpValidateError)
 		return
 	}
 
@@ -102,14 +103,15 @@ func PostApply(w http.ResponseWriter, r *http.Request) {
 	// 不支持跨天申请
 	aid := utils.CreateUUID()
 	app := Apply{
-		Id:      aid,
-		Uid:     dat.Uid,
-		Rid:     apply.Rid,
-		Start:   apply.Start,
-		End:     apply.End,
-		Status:  0,
-		Content: apply.Content,
-		Created: time.Now(),
+		Id:       aid,
+		Uid:      dat.Uid,
+		Username: dat.Username,
+		Rid:      apply.Rid,
+		Start:    apply.Start,
+		End:      apply.End,
+		Status:   0,
+		Content:  apply.Content,
+		Created:  time.Now(),
 	}
 
 	da.DBC().Create(app)
@@ -160,7 +162,8 @@ func (apply *Apply) GetRoomData() []Apply {
 	de := time.Date(dsb.Year(), dsb.Month(), dsb.Day(), 23, 59, 0, 0, time.Local)
 	var e []Apply
 	//var b []File
-	da.DBC().Where("rid = ? AND start >= ? AND end <= ?", apply.Rid, ds, de).Find(&e).Related(&[]File{})
+	da.DBC().Where("rid = ? AND start >= ? AND end <= ?", apply.Rid, ds, de).Find(&e)
+	//da.DBC().Where("rid = ? AND start >= ? AND end <= ?", apply.Rid, ds, de).Find(&e).Related(&[]File{})
 	//da.DBC().Model(&e).Related(&b)
 	return e
 }
@@ -169,11 +172,15 @@ func (apply *Apply) GetRoomData() []Apply {
  * 获取某个课室的数据
  */
 func GetApply(w http.ResponseWriter, r *http.Request) {
+
+	//if r.Method == http.MethodOptions {
+	//	w.Header().Add("Access-Control-Allow-Origin", "*")
+	//	w.Header().Add("content-type", "application/json")
+	//	w.Header().Add("Access-Control-Allow-Headers", "Authorization")
+	//	w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT")
+	//	return
+	//}
 	if r.Method == http.MethodOptions {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		w.Header().Add("content-type", "application/json")
-		w.Header().Add("Access-Control-Allow-Headers", "Authorization")
-		w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT")
 		return
 	}
 	// 验证
@@ -204,6 +211,18 @@ func GetApply(w http.ResponseWriter, r *http.Request) {
 	// 解析
 
 	applies := apply.GetRoomData()
+
+	for k, _ := range applies {
+		if applies[k].Status == utils.RoomHasEnd {
+			continue
+		}
+		if applies[k].End.Unix() < time.Now().Unix() {
+			applies[k].Status = utils.RoomHasEnd
+			da.DBC().Model(applies[k]).Update("status", utils.RoomHasEnd)
+		} else if applies[k].Start.Unix() < time.Now().Unix() && applies[k].End.Unix() > time.Now().Unix() {
+			applies[k].Status = utils.RoomCarryOn
+		}
+	}
 	utils.SucceedResult(w, applies, 1, http.StatusOK, utils.OpSucceed)
 }
 
@@ -266,7 +285,7 @@ func PutApply(w http.ResponseWriter, r *http.Request) {
 	var status int
 
 	if r.FormValue("status") == "" {
-		status = utils.RoomApplyWait
+		status = utils.RoomNotStart
 	} else {
 		b, err := strconv.Atoi(r.FormValue("status"))
 		if err != nil {

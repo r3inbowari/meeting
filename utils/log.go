@@ -32,6 +32,7 @@ func InitLogger() {
 		FullTimestamp: true,
 	})
 	log.Hooks.Add(NewContextHook())
+	Info("log open")
 }
 
 func Info(msg string, fields ...logrus.Fields) {

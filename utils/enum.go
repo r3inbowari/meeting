@@ -36,7 +36,7 @@ const (
 )
 
 const (
-	RoomApplyWait = iota
-	RoomApplySucceed
-	RoomApplyDenied
+	RoomNotStart = 0 //未开始
+	RoomCarryOn  = 1 //进行中
+	RoomHasEnd   = 2 //已结束
 )

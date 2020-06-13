@@ -16,7 +16,12 @@ func main() {
 	time.Sleep(time.Second * 50)
 }
 
+/**
+ * 数据库合并
+ */
 func CreateTable() {
 	da.DBC().AutoMigrate(&web.User{})
 	da.DBC().AutoMigrate(&web.Comment{})
+	da.DBC().AutoMigrate(&web.Apply{})
+	da.DBC().AutoMigrate(&web.File{})
 }

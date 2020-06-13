@@ -24,8 +24,6 @@ func SucceedResult(w http.ResponseWriter, data interface{}, total int, tag int, 
 		log.Fatalf("%v\n", err)
 	}
 	w.WriteHeader(tag)
-
-	println(string(jsonStr))
 	fmt.Fprintf(w, string(jsonStr))
 }
 
@@ -39,9 +37,6 @@ func FailedResult(w http.ResponseWriter, data interface{}, total int, tag int, c
 	if err != nil {
 		log.Fatalf("%v\n", err)
 	}
-
-	println(string(jsonStr))
 	w.WriteHeader(tag)
-
 	fmt.Fprintf(w, string(jsonStr))
 }
