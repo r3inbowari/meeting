@@ -20,9 +20,13 @@ import (
  * @update 2020/5/13
  */
 
+/*
+ * 教室表结构
+ */
 type Room struct {
 	Id   string `json:"id"`   // 课室id
 	Name string `json:"name"` // 课室名称
+	Desc string `json:"desc"` // 介绍
 }
 
 type File struct {
@@ -154,17 +158,24 @@ func (apply *Apply) ValidTimeCheck() error {
 }
 
 /**
- * 获取某个课室的所有记录
+ * 获取某个课室的所有记录 一天或范围
  */
 func (apply *Apply) GetRoomData() []Apply {
-	dsb := apply.Start.Add(time.Hour * 8)
-	ds := time.Date(dsb.Year(), dsb.Month(), dsb.Day(), 0, 0, 0, 0, time.Local)
-	de := time.Date(dsb.Year(), dsb.Month(), dsb.Day(), 23, 59, 0, 0, time.Local)
 	var e []Apply
-	//var b []File
-	da.DBC().Where("rid = ? AND start >= ? AND end <= ?", apply.Rid, ds, de).Find(&e)
-	//da.DBC().Where("rid = ? AND start >= ? AND end <= ?", apply.Rid, ds, de).Find(&e).Related(&[]File{})
-	//da.DBC().Model(&e).Related(&b)
+	dsb := apply.Start.Add(time.Hour * 8)
+	if apply.End.Unix() == apply.Start.Unix() {
+		ds := time.Date(dsb.Year(), dsb.Month(), dsb.Day(), 0, 0, 0, 0, time.Local)
+		de := time.Date(dsb.Year(), dsb.Month(), dsb.Day(), 23, 59, 0, 0, time.Local)
+		//var b []File
+		da.DBC().Where("rid = ? AND start >= ? AND end <= ?", apply.Rid, ds, de).Find(&e)
+		//da.DBC().Where("rid = ? AND start >= ? AND end <= ?", apply.Rid, ds, de).Find(&e).Related(&[]File{})
+		//da.DBC().Model(&e).Related(&b)
+	} else {
+		dse := apply.End.Add(time.Hour * 8)
+		ds := time.Date(dsb.Year(), dsb.Month(), dsb.Day(), 0, 0, 0, 0, time.Local)
+		de := time.Date(dse.Year(), dse.Month(), dse.Day(), 23, 59, 0, 0, time.Local)
+		da.DBC().Where("rid = ? AND start >= ? AND end <= ?", apply.Rid, ds, de).Find(&e)
+	}
 	return e
 }
 
@@ -202,13 +213,25 @@ func GetApply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	apply.Rid = r.FormValue("rid")
-	t, err := time.Parse("2006-01-02T15:04:05Z", r.FormValue("time"))
+	op, err := time.Parse("2006-01-02T15:04:05Z", r.FormValue("time"))
 	if err != nil {
 		utils.FailedResult(w, err.Error(), 1, http.StatusInternalServerError, utils.OpValidateError)
 		return
 	}
-	apply.Start = t
+	apply.Start = op
 	// 解析
+
+	// range date data get
+	if r.FormValue("end") != "" {
+		ed, err := time.Parse("2006-01-02T15:04:05Z", r.FormValue("end"))
+		if err != nil {
+			utils.FailedResult(w, err.Error(), 1, http.StatusInternalServerError, utils.OpValidateError)
+			return
+		}
+		apply.End = ed
+	} else {
+		apply.End = op
+	}
 
 	applies := apply.GetRoomData()
 
@@ -353,6 +376,15 @@ func FileUpload(w http.ResponseWriter, r *http.Request) {
 	da.DBC().Create(file)
 
 	utils.SucceedResult(w, "upload succeed", 1, http.StatusOK, utils.OpSucceed)
+}
+
+/**
+ * 教室获取
+ */
+func RoomList(w http.ResponseWriter, r *http.Request) {
+	var rooms []Room
+	da.DBC().Find(&rooms)
+	utils.SucceedResult(w, rooms, len(rooms), http.StatusOK, utils.OpSucceed)
 }
 
 /**

@@ -17,4 +17,5 @@ func ApplyRest(r *mux.Router) {
 
 	r.HandleFunc("/apply/{id}", web.PutApply).Methods("Put") // 审核修改
 
+	r.HandleFunc("/apply/rooms", web.RoomList).Methods(http.MethodGet) // 教室获取
 }
