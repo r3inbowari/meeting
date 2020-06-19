@@ -7,6 +7,7 @@ import (
 	"meeting/rest"
 	"meeting/utils"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -17,6 +18,7 @@ import (
  *
  * @history 6/11/2020 add iot rest uri
  *          5/29/2020 created default options
+ *          6/20/2020 sql runtime
  */
 
 func Start() {
@@ -38,12 +40,15 @@ func Start() {
 
 func corsMid(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.Info("mux route", logrus.Fields{"path": r.URL.Path, "method": r.Method})
+		t1 := time.Now()                                                //获取本地现在时间
 		w.Header().Add("Access-Control-Allow-Origin", "*")              //允许访问所有域
 		w.Header().Add("content-type", "application/json")              //返回数据格式是json
 		w.Header().Add("Access-Control-Allow-Headers", "Authorization") //header的类型
 		w.Header().Add("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
 		w.Header().Add("Access-Control-Max-Age", "600")
 		next.ServeHTTP(w, r)
+		t2 := time.Now()
+		d := t2.Sub(t1) //两个时间相减
+		utils.Info("mux route", logrus.Fields{"path": r.URL.Path, "method": r.Method, "runtime": strconv.FormatInt(d.Milliseconds(), 10) + "ms"})
 	})
 }
