@@ -17,6 +17,7 @@ type LocalConfig struct {
 	CacheDeadline    time.Time `json:"-"`
 	Version          *string   `json:"version"`
 	VersionTag       *string   `json:"versionTag"`
+	IotPort          *int   `json:"iot_port"`
 }
 
 var config = new(LocalConfig)

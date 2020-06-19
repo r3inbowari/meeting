@@ -1,7 +1,9 @@
 package web
 
 import (
+	"meeting/utils"
 	"net/http"
+	"time"
 )
 
 /**
@@ -30,9 +32,11 @@ func IotSwitch(w http.ResponseWriter, r *http.Request) {
 }
 
 type Iot struct {
-	Id  string `json:"id"`               // 申请实例id
-	Rid string `json:"rid" valid:"uuid"` // 教室id
-
+	Id     string    `json:"id"`               // 物联网uuid
+	Name   string    `json:"name"`             // 名称
+	Rid    string    `json:"rid" valid:"uuid"` // 关联教室id
+	Type   int       `json:"type"`             // 设备类型
+	Create time.Time `json:"create"`           // 创建时间
 }
 
 /**
@@ -41,9 +45,14 @@ type Iot struct {
  * @history 11/6/2020 create
  */
 func IotList(w http.ResponseWriter, r *http.Request) {
-
+	names := GetDTUSessionsKey()
+	utils.SucceedResult(w, names, 1, http.StatusOK, utils.OpSucceed)
 }
 
 /**
- *
+ *IotOrder
  */
+//func IotList(w http.ResponseWriter, r *http.Request) {
+//	names := GetDTUSessionsKey()
+//	utils.SucceedResult(w, names, 1, http.StatusOK, utils.OpSucceed)
+//}
