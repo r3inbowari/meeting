@@ -18,4 +18,11 @@ func ApplyRest(r *mux.Router) {
 	r.HandleFunc("/apply/{id}", web.PutApply).Methods("Put") // 审核修改
 
 	r.HandleFunc("/apply/rooms", web.RoomList).Methods(http.MethodGet) // 教室获取
+
+	// new feature
+	r.HandleFunc("/apply/join", web.PostJoin).Methods(http.MethodPost) // 与会人员添加
+	r.HandleFunc("/apply/join/{id}", web.GetJoin).Methods(http.MethodGet, http.MethodOptions) // 与会人员查询
+	r.HandleFunc("/apply/join/{id}", web.DelJoin).Methods(http.MethodDelete) // 与会人员删除
+
+
 }

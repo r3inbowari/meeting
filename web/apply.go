@@ -49,7 +49,6 @@ type Apply struct {
 	Content  string    `json:"content"`          // 申请内容
 	Files    []File    `json:"files"`            // 文件连接
 	Created  time.Time `json:"created"`          // 创建时间
-
 }
 
 //type ApplyRequest struct {

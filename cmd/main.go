@@ -61,4 +61,5 @@ func CreateTable() {
 	da.DBC().AutoMigrate(&web.Apply{})
 	da.DBC().AutoMigrate(&web.File{})
 	da.DBC().AutoMigrate(&web.Room{})
+	da.DBC().AutoMigrate(&web.MeetingJoin{})
 }
