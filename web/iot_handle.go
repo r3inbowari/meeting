@@ -63,12 +63,15 @@ func DtuHandle(conn net.Conn) {
 	go session.readConn()
 
 	time.Sleep(time.Second)
-	session.Write([]byte{0xff, 0x05, 0xa1, 0xf1, 0x3a, 0x38, 0x66})
-
+	//session.Write([]byte{0xff, 0x05, 0xa1, 0xf1, 0x3a, 0x38, 0x66})
+	//session.Write([]byte{0xfa, 0x03, 0x10, 0x00, 0x46})
+	session.Write([]byte{0xfa, 0x03, utils.GetConfig().IotVersion.A, utils.GetConfig().IotVersion.B, utils.GetConfig().IotVersion.C})
 	for {
 		select {
 		case read := <-session.readChan:
-			println(string(read))
+
+			println("湿度: ", read[0]+read[1]/10)
+			println("温度: ", read[2]+read[3]/10)
 			// session.Write([]byte("123FF4"))
 		case stop := <-session.stopChan:
 			if stop {

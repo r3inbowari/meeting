@@ -18,6 +18,13 @@ type LocalConfig struct {
 	Version          *string   `json:"version"`
 	VersionTag       *string   `json:"versionTag"`
 	IotPort          *int   `json:"iot_port"`
+	IotVersion *IV `json:"iot_version"`
+}
+
+type IV struct {
+	A byte `json:"a"`
+	B byte `json:"b"`
+	C byte `json:"c"`
 }
 
 var config = new(LocalConfig)
