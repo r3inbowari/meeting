@@ -387,6 +387,27 @@ func RoomList(w http.ResponseWriter, r *http.Request) {
 }
 
 /**
+ * 教室获取, 我的
+ */
+func MyApply(w http.ResponseWriter, r *http.Request) {
+	token, err := utils.GetAuthToken(r)
+	if err != nil {
+		utils.FailedResult(w, err.Error(), 1, http.StatusUnauthorized, utils.OpAuthError)
+		return
+	}
+
+	if !CheckToken(token) {
+		utils.FailedResult(w, "login error", 1, http.StatusUnauthorized, utils.OpLoginError)
+		return
+	}
+
+	var apps []Apply
+	da.DBC().Where("username = ?", GetIdTokenByToken(token)).Find(&apps)
+	utils.SucceedResult(w, apps, len(apps), http.StatusOK, utils.OpSucceed)
+}
+
+
+/**
  * 文件上传
  */
 func FileDownload(w http.ResponseWriter, r *http.Request) {
