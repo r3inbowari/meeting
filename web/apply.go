@@ -402,7 +402,7 @@ func MyApply(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var apps []Apply
-	da.DBC().Where("username = ?", GetIdTokenByToken(token)).Find(&apps)
+	da.DBC().Where("uid = ?", GetIdTokenByToken(token)).Find(&apps)
 	utils.SucceedResult(w, apps, len(apps), http.StatusOK, utils.OpSucceed)
 }
 
